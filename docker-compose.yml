@@ -1,0 +1,39 @@
+version: '3'
+services:
+  db:
+    container_name: postgres-test-db
+    image: "postgres" # use latest official postgres version
+    env_file:
+      - database.env # configure postgres
+    volumes:
+      - test-db-data:/var/lib/postgresql/data/ # persist data even if container shuts down
+    ports:
+      - "5432:5432"
+    restart: always
+    networks:
+      - db_nw
+
+  web:
+    container_name: webserver 
+    image: "ubuntu"
+    env_file:
+      - database.env # configure postgres
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - web_nw
+      - db_nw
+    depends_on:
+      - db
+
+volumes:
+  test-db-data: # named volumes can be managed easier using docker-compose
+    name: test-data
+
+networks:
+  db_nw:
+    driver: bridge
+  web_nw:
+    driver: bridge
